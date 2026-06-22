@@ -1,8 +1,8 @@
 package com.berna.nino.data.model
 
 /**
- * Esta es nuestra "ficha técnica" para cada canción.
- * Usamos 'data class' porque su única función es guardar datos.
+ * Data model for a song.
+ * Represents the essential information needed to display a song in the UI.
  */
 data class Song(
     val id: Int,

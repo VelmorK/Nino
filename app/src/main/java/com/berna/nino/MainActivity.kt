@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import com.berna.nino.ui.screens.LibraryScreen
-import com.berna.nino.ui.screens.PlayerScreen
 import com.berna.nino.ui.theme.NinoTheme
 
 class MainActivity : ComponentActivity() {
@@ -18,8 +17,9 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             NinoTheme {
+                // Scaffold provides the basic Material Design visual layout structure
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    // Cambiamos PlayerScreen por LibraryScreen para probar
+                    // Initializing the app with the LibraryScreen
                     LibraryScreen(modifier = Modifier.padding(innerPadding))
                 }
             }
