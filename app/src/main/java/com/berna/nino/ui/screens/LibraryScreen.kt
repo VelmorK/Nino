@@ -23,11 +23,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.berna.nino.data.model.Song
+import com.berna.nino.data.repository.AudioRepository
 import com.berna.nino.ui.theme.NinoTheme
+import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 @Composable
 fun LibraryScreen(modifier: Modifier = Modifier) {
     val context = LocalContext.current
+    val audioRepository = remember { AudioRepository(context) }
     
     // Since minSdk is 33, we only need READ_MEDIA_AUDIO
     val permission = Manifest.permission.READ_MEDIA_AUDIO
@@ -39,11 +43,21 @@ fun LibraryScreen(modifier: Modifier = Modifier) {
         )
     }
 
+    // State to store the list of songs
+    var songs by remember { mutableStateOf(emptyList<Song>()) }
+
     // Launcher to request permission from the system
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         hasPermission = isGranted
+    }
+
+    // Fetch songs when permission is granted
+    LaunchedEffect(hasPermission) {
+        if (hasPermission) {
+            songs = audioRepository.fetchAudioFiles()
+        }
     }
 
     Column(
@@ -60,7 +74,7 @@ fun LibraryScreen(modifier: Modifier = Modifier) {
 
         if (hasPermission) {
             // Show the song list if permission is granted
-            SongList()
+            SongList(songs = songs)
         } else {
             // Show a UI to request permission if not granted
             PermissionRequestUI {
@@ -71,27 +85,18 @@ fun LibraryScreen(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun SongList() {
-    val dummySongs = listOf(
-        Song(1, "Like a Rolling Stone", "Bob Dylan", "6:13"),
-        Song(2, "Smells Like Teen Spirit", "Nirvana", "5:01"),
-        Song(3, "Billie Jean", "Michael Jackson", "4:54"),
-        Song(4, "Imagine", "John Lennon", "3:03"),
-        Song(5, "Bohemian Rhapsody", "Queen", "5:55"),
-        Song(6, "Purple Haze", "Jimi Hendrix", "2:51"),
-        Song(7, "Hey Jude", "The Beatles", "7:11"),
-        Song(8, "Respect", "Aretha Franklin", "2:27"),
-        Song(9, "Dancing Queen", "ABBA", "3:51"),
-        Song(10, "Good Vibrations", "The Beach Boys", "3:35"),
-        Song(11, "Hotel California", "Eagles", "6:31"),
-        Song(12, "Stayin' Alive", "Bee Gees", "4:45")
-    )
-
-    LazyColumn(
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        items(dummySongs) { song ->
-            SongItem(song = song)
+fun SongList(songs: List<Song>) {
+    if (songs.isEmpty()) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text(text = "No music found on your device.")
+        }
+    } else {
+        LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(songs) { song ->
+                SongItem(song = song)
+            }
         }
     }
 }
@@ -147,22 +152,33 @@ fun SongItem(song: Song) {
             Text(
                 text = song.title,
                 style = MaterialTheme.typography.bodyLarge,
+                maxLines = 1,
                 fontWeight = FontWeight.SemiBold
             )
             Text(
                 text = song.artist,
                 style = MaterialTheme.typography.bodyMedium,
+                maxLines = 1,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
         // Duration on the right
         Text(
-            text = song.duration,
+            text = formatDuration(song.duration),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.outline
         )
     }
+}
+
+/**
+ * Helper function to format duration in milliseconds to MM:SS format.
+ */
+private fun formatDuration(durationMs: Long): String {
+    val minutes = TimeUnit.MILLISECONDS.toMinutes(durationMs)
+    val seconds = TimeUnit.MILLISECONDS.toSeconds(durationMs) % 60
+    return String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
 }
 
 @Preview(showBackground = true)
