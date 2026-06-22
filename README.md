@@ -12,11 +12,12 @@ Nino is a native Android music application focused on extreme performance, seaml
 
 ## 🗺️ Development Roadmap
 
-### 🟩 Phase 1: Repository & Base UI (Week 1) 🛠️ *Completed*
+### 🟩 Phase 1: Repository & Base UI (Week 1) 🛠️ *In Progress*
 - [x] Set up Android Studio environment (Minimum SDK: Android 13 - API 33).
 - [x] Synchronize GitHub repository for hybrid PC/Laptop development workflow.
 - [x] Master core Jetpack Compose layouts (`Column`, `Row`, `Box`).
 - [x] Design the player shell interface (Base UI/UX).
+- [ ] Create a basic Library/Playlist UI (LazyColumn).
 
 ### 🟦 Phase 2: Local Audio Playback (Weeks 2-3)
 - [ ] Implement granular audio permissions (`READ_MEDIA_AUDIO`).
