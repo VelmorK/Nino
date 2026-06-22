@@ -1,6 +1,7 @@
 package com.berna.nino.ui.screens
 
 import android.Manifest
+import android.content.ComponentName
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -22,9 +23,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
+import androidx.media3.session.MediaController
+import androidx.media3.session.SessionToken
 import com.berna.nino.data.model.Song
 import com.berna.nino.data.repository.AudioRepository
+import com.berna.nino.service.PlaybackService
 import com.berna.nino.ui.theme.NinoTheme
+import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.MoreExecutors
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
@@ -33,6 +41,23 @@ fun LibraryScreen(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val audioRepository = remember { AudioRepository(context) }
     
+    // State to store the media controller
+    var controller by remember { mutableStateOf<MediaController?>(null) }
+    
+    // Connect to the PlaybackService using MediaController
+    DisposableEffect(Unit) {
+        val sessionToken = SessionToken(context, ComponentName(context, PlaybackService::class.java))
+        val controllerFuture = MediaController.Builder(context, sessionToken).buildAsync()
+        
+        controllerFuture.addListener({
+            controller = controllerFuture.get()
+        }, MoreExecutors.directExecutor())
+
+        onDispose {
+            MediaController.releaseFuture(controllerFuture)
+        }
+    }
+
     // Since minSdk is 33, we only need READ_MEDIA_AUDIO
     val permission = Manifest.permission.READ_MEDIA_AUDIO
 
@@ -74,7 +99,27 @@ fun LibraryScreen(modifier: Modifier = Modifier) {
 
         if (hasPermission) {
             // Show the song list if permission is granted
-            SongList(songs = songs)
+            SongList(
+                songs = songs,
+                onSongClick = { song ->
+                    controller?.run {
+                        val mediaItem = MediaItem.Builder()
+                            .setMediaId(song.contentUri.toString())
+                            .setUri(song.contentUri)
+                            .setMediaMetadata(
+                                MediaMetadata.Builder()
+                                    .setTitle(song.title)
+                                    .setArtist(song.artist)
+                                    .build()
+                            )
+                            .build()
+                        
+                        setMediaItem(mediaItem)
+                        prepare()
+                        play()
+                    }
+                }
+            )
         } else {
             // Show a UI to request permission if not granted
             PermissionRequestUI {
@@ -85,7 +130,7 @@ fun LibraryScreen(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun SongList(songs: List<Song>) {
+fun SongList(songs: List<Song>, onSongClick: (Song) -> Unit) {
     if (songs.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text(text = "No music found on your device.")
@@ -95,7 +140,7 @@ fun SongList(songs: List<Song>) {
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(songs) { song ->
-                SongItem(song = song)
+                SongItem(song = song, onClick = { onSongClick(song) })
             }
         }
     }
@@ -121,12 +166,12 @@ fun PermissionRequestUI(onGrantClick: () -> Unit) {
 }
 
 @Composable
-fun SongItem(song: Song) {
+fun SongItem(song: Song, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
-            .clickable { /* TODO: Play this song */ }
+            .clickable { onClick() }
             .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
