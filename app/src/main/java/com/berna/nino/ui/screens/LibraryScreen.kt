@@ -36,7 +36,10 @@ import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 @Composable
-fun LibraryScreen(modifier: Modifier = Modifier) {
+fun LibraryScreen(
+    onNavigateToPlayer: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     val context = LocalContext.current
     val audioRepository = remember { AudioRepository(context) }
     
@@ -116,6 +119,9 @@ fun LibraryScreen(modifier: Modifier = Modifier) {
                         setMediaItem(mediaItem)
                         prepare()
                         play()
+                        
+                        // After starting playback, navigate to the player screen
+                        onNavigateToPlayer()
                     }
                 }
             )
@@ -229,6 +235,6 @@ private fun formatDuration(durationMs: Long): String {
 @Composable
 fun LibraryScreenPreview() {
     NinoTheme {
-        LibraryScreen()
+        LibraryScreen(onNavigateToPlayer = {})
     }
 }
