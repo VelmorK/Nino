@@ -31,7 +31,6 @@ import com.berna.nino.data.model.Song
 import com.berna.nino.data.repository.AudioRepository
 import com.berna.nino.service.PlaybackService
 import com.berna.nino.ui.theme.NinoTheme
-import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import java.util.Locale
 import java.util.concurrent.TimeUnit
@@ -43,7 +42,7 @@ fun LibraryScreen(modifier: Modifier = Modifier) {
     
     // State to store the media controller
     var controller by remember { mutableStateOf<MediaController?>(null) }
-    
+
     // Connect to the PlaybackService using MediaController
     DisposableEffect(Unit) {
         val sessionToken = SessionToken(context, ComponentName(context, PlaybackService::class.java))
