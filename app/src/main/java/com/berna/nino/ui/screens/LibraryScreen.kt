@@ -1,7 +1,6 @@
 package com.berna.nino.ui.screens
 
 import android.Manifest
-import android.content.ComponentName
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -26,40 +25,21 @@ import androidx.core.content.ContextCompat
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.session.MediaController
-import androidx.media3.session.SessionToken
 import com.berna.nino.data.model.Song
 import com.berna.nino.data.repository.AudioRepository
-import com.berna.nino.service.PlaybackService
 import com.berna.nino.ui.theme.NinoTheme
-import com.google.common.util.concurrent.MoreExecutors
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 @Composable
 fun LibraryScreen(
+    controller: MediaController?,
     onNavigateToPlayer: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     val audioRepository = remember { AudioRepository(context) }
     
-    // State to store the media controller
-    var controller by remember { mutableStateOf<MediaController?>(null) }
-
-    // Connect to the PlaybackService using MediaController
-    DisposableEffect(Unit) {
-        val sessionToken = SessionToken(context, ComponentName(context, PlaybackService::class.java))
-        val controllerFuture = MediaController.Builder(context, sessionToken).buildAsync()
-        
-        controllerFuture.addListener({
-            controller = controllerFuture.get()
-        }, MoreExecutors.directExecutor())
-
-        onDispose {
-            MediaController.releaseFuture(controllerFuture)
-        }
-    }
-
     // Since minSdk is 33, we only need READ_MEDIA_AUDIO
     val permission = Manifest.permission.READ_MEDIA_AUDIO
 
@@ -235,6 +215,6 @@ private fun formatDuration(durationMs: Long): String {
 @Composable
 fun LibraryScreenPreview() {
     NinoTheme {
-        LibraryScreen(onNavigateToPlayer = {})
+        LibraryScreen(controller = null, onNavigateToPlayer = {})
     }
 }
