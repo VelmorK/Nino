@@ -19,14 +19,14 @@ Nino is a native Android music application focused on extreme performance, seaml
 - [x] Design the player shell interface (Base UI/UX).
 - [x] Create a basic Library/Playlist UI (LazyColumn).
 
-### 🟦 Phase 2: Local Audio Playback 🛠️ *In Progress*
+### 🟦 Phase 2: Local Audio Playback 🛠️ *Completed*
 - [x] Implement granular audio permissions (`READ_MEDIA_AUDIO`).
 - [x] Integrate **Jetpack Media3 (ExoPlayer)** for local audio streaming.
-- [ ] Manage background services and lock screen media controls.
+- [x] Manage background services and lock screen media controls.
 
-### 🟨 Phase 3: User Experience & Core Navigation 🛠️ *Planned*
-- [ ] Implement Jetpack Navigation for seamless screen transitions.
-- [ ] Connect Library selection with Player view.
+### 🟨 Phase 3: User Experience & Core Navigation 🛠️ *In Progress*
+- [x] Implement Jetpack Navigation for seamless screen transitions.
+- [x] Connect Library selection with Player view.
 - [ ] Implement a mini-player for persistent control.
 
 ### 🟪 Phase 4: Central Server (Go Backend) & Database
