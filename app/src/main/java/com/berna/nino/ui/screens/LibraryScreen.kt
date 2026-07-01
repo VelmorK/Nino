@@ -9,9 +9,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -72,12 +74,53 @@ fun LibraryScreen(
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Text(
-            text = "Your Library",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Your Library",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold
+            )
+            
+            // Shuffle Play Button
+            if (songs.isNotEmpty()) {
+                IconButton(
+                    onClick = {
+                        controller?.run {
+                            val shuffledSongs = songs.shuffled()
+                            val mediaItems = shuffledSongs.map { s ->
+                                MediaItem.Builder()
+                                    .setMediaId(s.contentUri.toString())
+                                    .setUri(s.contentUri)
+                                    .setMediaMetadata(
+                                        MediaMetadata.Builder()
+                                            .setTitle(s.title)
+                                            .setArtist(s.artist)
+                                            .build()
+                                    )
+                                    .build()
+                            }
+                            setMediaItems(mediaItems)
+                            prepare()
+                            play()
+                            onNavigateToPlayer()
+                        }
+                    },
+                    modifier = Modifier.background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Shuffle,
+                        contentDescription = "Shuffle Play",
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+            }
+        }
 
         if (hasPermission) {
             // Show the song list if permission is granted
@@ -85,18 +128,25 @@ fun LibraryScreen(
                 songs = songs,
                 onSongClick = { song ->
                     controller?.run {
-                        val mediaItem = MediaItem.Builder()
-                            .setMediaId(song.contentUri.toString())
-                            .setUri(song.contentUri)
-                            .setMediaMetadata(
-                                MediaMetadata.Builder()
-                                    .setTitle(song.title)
-                                    .setArtist(song.artist)
-                                    .build()
-                            )
-                            .build()
+                        // 1. Convert the entire list of songs to MediaItems
+                        val mediaItems = songs.map { s ->
+                            MediaItem.Builder()
+                                .setMediaId(s.contentUri.toString())
+                                .setUri(s.contentUri)
+                                .setMediaMetadata(
+                                    MediaMetadata.Builder()
+                                        .setTitle(s.title)
+                                        .setArtist(s.artist)
+                                        .build()
+                                )
+                                .build()
+                        }
                         
-                        setMediaItem(mediaItem)
+                        // 2. Find the index of the clicked song
+                        val startIndex = songs.indexOf(song)
+                        
+                        // 3. Set the whole playlist and start from the selected index
+                        setMediaItems(mediaItems, startIndex, 0L)
                         prepare()
                         play()
                         
